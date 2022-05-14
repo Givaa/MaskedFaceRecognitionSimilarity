@@ -15,7 +15,7 @@ import shutil
 __version__ = '0.3.0'
 
 
-IMAGE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'images')
+IMAGE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'masks')
 # IMAGE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'images')
 DEFAULT_IMAGE_PATH = os.path.join(IMAGE_DIR, 'default-mask.png')
 BLACK_IMAGE_PATH = os.path.join(IMAGE_DIR, 'black-mask.png')
