@@ -1,3 +1,4 @@
+import pickle
 from genericpath import isdir, isfile
 from ntpath import join
 from os import listdir
@@ -11,7 +12,7 @@ from utility import euclidean_distance, get_class_from_file, load_img, loss, mak
 
 class SiameseClass:
 
-    def __init__(self, directory = "/dataset", model_save_path=None, epochs=10, target_shape = (128, 128), margin=1):
+    def __init__(self, directory = "/dataset", model_save_path=None, epochs=10, target_shape = (128, 128), margin=1, truncate_dataset=None):
         self.directory = directory
         self.model_save_path = model_save_path
         self.epochs = epochs
@@ -19,9 +20,13 @@ class SiameseClass:
         self.class_names=[]
 
         directories = [f for f in listdir(directory) if isdir(join(directory, f))]
-        if len(directories) > 0:
-            batch_size = [f for f in listdir(join(directory,directories[0])) if isfile(join(directory,directories[0], f))]
-            self.batch_size = len(batch_size)
+        self.class_names = directories
+
+        if truncate_dataset == None and len(directories) > 0:
+            truncate_dataset = [f for f in listdir(join(directory,directories[0])) if isfile(join(directory,directories[0], f))]
+            self.batch_size = len(truncate_dataset)
+        elif truncate_dataset != None:
+            self.batch_size = truncate_dataset
         else:
             self.batch_size = 32
 
@@ -30,6 +35,7 @@ class SiameseClass:
 
         if model_save_path != None and isdir(model_save_path):
             self.siamese.load_weights(model_save_path)
+            self.history = pickle.load(open(self.model_save_path+"history", "rb"))
         else:
             print("No model found. Model needs to be trained.")
             
@@ -56,7 +62,8 @@ class SiameseClass:
             x_train_val = images.numpy()
             y_train_val = labels.numpy()
 
-        x_train_val  = x_train_val.astype("uint8")
+        x_train_val  = x_train_val.astype("float32")
+        y_train_val  = y_train_val.astype("uint8")
 
         lenght = len(x_train_val)
         train = int(lenght*.7)
@@ -90,13 +97,15 @@ class SiameseClass:
             [x_train_1, x_train_2],
             labels_train,
             validation_data=([x_val_1, x_val_2], labels_val),
-            batch_size=32,
+            batch_size=20,
             epochs=self.epochs,
         )
 
         
         if save_model == True:
             siamese.save_weights(self.model_save_path)
+            with open(self.model_save_path+"history", 'wb') as file_pi:
+                pickle.dump(history.history, file_pi)
             #TODO SAVE CLASSNAME
 
         self.history = history
@@ -138,10 +147,10 @@ class SiameseClass:
         return siamese
 
     def plot_accuracy(self):
-        plt_metric(history=self.history.history, metric="accuracy", title="Model accuracy")
+        plt_metric(history=self.history, metric="accuracy", title="Model accuracy")
 
     def plot_loss(self):
-        plt_metric(history=self.history.history, metric="loss", title="Constrastive Loss")
+        plt_metric(history=self.history, metric="loss", title="Constrastive Loss")
 
     def predict(self, path1="", path2="", visualize_result=False, save_image_path=None):
         file1 = load_img(path1, (128, 128))
@@ -162,11 +171,11 @@ class SiameseClass:
             plt.title("Pred: {:.5f}".format(results[0][0]))
             plt.axis('off')
             ax = fig.add_subplot(1, 2, 1)
-            imgplot = plt.imshow(file1[0])
+            imgplot = plt.imshow(file1[0].astype("uint8"))
             ax.set_title(class1)
             ax.set_axis_off()
             ax = fig.add_subplot(1, 2, 2)
-            imgplot = plt.imshow(file2[0])
+            imgplot = plt.imshow(file2[0].astype("uint8"))
             imgplot.set_clim(0.0, 0.7)
             ax.set_title(class2)
             ax.set_axis_off()

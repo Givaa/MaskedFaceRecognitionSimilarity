@@ -180,13 +180,6 @@ def plt_metric(history, metric, title, has_valid=True):
             plt.tight_layout(rect=(0, 0, 1.5, 1.5))
         plt.show()
 
-def load_img(image_path="", target_size=(200,200)):
-    image = tf.keras.preprocessing.image.load_img(image_path, target_size=target_size)
-    input_arr = tf.keras.preprocessing.image.img_to_array(image)
-    input_arr = np.array([input_arr])  # Convert single image to a batch.
-    return input_arr.astype("uint8")
-
-
 def visualize(pairs, labels, to_show=6, num_col=3, predictions=None, test=False):
     """Creates a plot of pairs and labels, and prediction if it's test dataset.
 
@@ -249,6 +242,13 @@ def visualize(pairs, labels, to_show=6, num_col=3, predictions=None, test=False)
     else:
         plt.tight_layout(rect=(0, 0, 1.5, 1.5))
     plt.show()
+
+
+def load_img(image_path="", target_size=(200,200)):
+    image = tf.keras.preprocessing.image.load_img(image_path, target_size=target_size)
+    input_arr = tf.keras.preprocessing.image.img_to_array(image)
+    input_arr = np.array([input_arr])  # Convert single image to a batch.
+    return input_arr
 
 
 def get_class_from_file(path):
