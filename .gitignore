@@ -1,6 +1,6 @@
 
 .DS_Store
 shape_predictor
-celeb_dataset_masked
+/celeb_dataset_masked
 __pycache__
 foto.png
