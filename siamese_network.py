@@ -26,13 +26,12 @@ class SiameseClass:
             self.batch_size = 32
 
         self.margin=margin
-
         self.siamese = self.siamese_boilerplate()
-        self.siamese.load_weights(model_save_path)
-        #if model_save_path != None and isfile(join(model_save_path, "saved_model.pb")):
-        #    self.siamese = keras.models.load_model(model_save_path)
-        #else:
-        #    print("No h5 file found. Model needs to be trained.")
+
+        if model_save_path != None and isdir(model_save_path):
+            self.siamese.load_weights(model_save_path)
+        else:
+            print("No model found. Model needs to be trained.")
             
 
     def train(self, save_model = False):
@@ -103,9 +102,8 @@ class SiameseClass:
         self.history = history
         self.siamese = siamese
 
-        predictions = siamese.predict([x_test_1, x_test_2])
-        visualize(pairs_test, labels_test, to_show=3, predictions=predictions, test=True)
-        print(predictions)
+        #predictions = siamese.predict([x_test_1, x_test_2])
+        #visualize(pairs_test, labels_test, to_show=3, predictions=predictions, test=True)
 
     def siamese_boilerplate(self):
         input = tf.keras.layers.Input((128, 128, 3))
