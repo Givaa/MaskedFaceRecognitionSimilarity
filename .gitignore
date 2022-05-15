@@ -1,3 +1,6 @@
 
 .DS_Store
 shape_predictor
+celeb_dataset
+model_save
+__pycache__
