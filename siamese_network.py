@@ -179,7 +179,7 @@ class SiameseClass:
             imgplot.set_clim(0.0, 0.7)
             ax.set_title(class2)
             ax.set_axis_off()
-            plt.show()
+            #plt.show()
             if save_image_path != None:
                 fig.savefig(save_image_path)
 

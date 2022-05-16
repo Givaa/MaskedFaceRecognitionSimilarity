@@ -4,3 +4,5 @@ shape_predictor
 /celeb_dataset_masked
 __pycache__
 foto.png
+result
+/celeb_test
