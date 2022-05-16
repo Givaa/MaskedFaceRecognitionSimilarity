@@ -2,7 +2,12 @@
 .DS_Store
 shape_predictor
 /celeb_dataset_masked
+/celeb_dataset_masked_person
+/celeb_dataset_masked_unmasked
+/celeb_dataset_masked_type
+/face_mask_detection_database
 __pycache__
 foto.png
 result
 /celeb_test
+/lfwd_dataset

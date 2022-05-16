@@ -39,11 +39,12 @@ def make_pairs(x, y):
         while label2 == label1:
             label2 = random.randint(0, num_classes - 1)
 
-        idx2 = random.choice(digit_indices[label2])
-        x2 = x[idx2]
-
-        pairs += [[x1, x2]]
-        labels += [0]
+        if len(digit_indices[label2]) > 0:
+            idx2 = random.choice(digit_indices[label2])
+            x2 = x[idx2]
+    
+            pairs += [[x1, x2]]
+            labels += [0]
 
     return np.array(pairs), np.array(labels).astype("float32")
 
