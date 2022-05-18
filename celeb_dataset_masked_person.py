@@ -23,8 +23,8 @@ epochs=10, truncate_dataset=10000)
 
 #labels
 classes = siamese.class_names
-#siamese.plot_accuracy()
-#siamese.plot_loss()
+siamese.plot_accuracy()
+siamese.plot_loss()
 
 #result = siamese.predict(path1="celeb_dataset_masked_person/unmasked/202599.jpg",
 #                path2="celeb_dataset_masked_unmasked/mask1/202599.jpg", visualize_result=True, save_image_path="foto.png")
