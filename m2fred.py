@@ -10,7 +10,7 @@ from tensorflow import keras
 from siamese_network import SiameseClass
 
 directory = "m2fred_face"
-directoryTest = "dataset_test/m2fred"
+directoryTest = "dataset_test/m2fred_face"
 directoryModel = "model_save/{}/".format(directory)
 
 #truncate_dataset=None dà problemi allocazione memoria
@@ -33,12 +33,13 @@ identities = listdir(join(directoryTest))
 
 for identity in identities:
         identifyFolderTest = path.join(directoryTest,identity)
-        identifyFolder = path.join(directory,identity)
-        for i in [1,2,3,4]:
-                testFile = path.join(identifyFolderTest,"{}.png".format(i))
-                file = path.join(identifyFolder,"{}.png".format(i))
-                if isfile(file) and isfile(testFile):
-                        score = siamese.predict(path1=file,
-                                path2=testFile, visualize_result=True)
-                        print("Identità: {}. File: {}. Score: {}".format(identity, i, score))
+        unmaskedFiles = list(filter(lambda file: file.find("-1-1") >0, listdir(identifyFolderTest)))
+
+        for unmaskedFile in unmaskedFiles:
+                videoSession = unmaskedFile.split("-")[0]
+                maskedFile = "{}-1-1.png".format(videoSession)
+                if(isfile(maskedFile)):
+                        score = siamese.predict(path1=path.join(directoryTest,identity, unmaskedFile),
+                                path2=path.join(directoryTest,identity, maskedFile), visualize_result=True)
+                        print("Identità: {}. Session: {}. Score: {}".format(identity, videoSession, score))
 print("FATTO")
