@@ -16,7 +16,7 @@ directoryModel = "model_save/{}/".format(directory)
 #truncate_dataset=None dà problemi allocazione memoria
 siamese = SiameseClass(directory=directory, 
 model_save_path=directoryModel,
-epochs=20)
+epochs=10)
 
 #Commentato perchè già addestrato
 #siamese.train(save_model=True)
@@ -33,12 +33,12 @@ identities = listdir(join(directoryTest))
 
 for identity in identities:
         identifyFolderTest = path.join(directoryTest,identity)
-        unmaskedFiles = list(filter(lambda file: file.find("-1-1") >0, listdir(identifyFolderTest)))
+        unmaskedFiles = list(filter(lambda file: file.find("-0-0") >0, listdir(identifyFolderTest)))
 
         for unmaskedFile in unmaskedFiles:
                 videoSession = unmaskedFile.split("-")[0]
-                maskedFile = "{}-1-1.png".format(videoSession)
-                if(isfile(maskedFile)):
+                maskedFile = "{}-1-0.png".format(videoSession)
+                if(isfile(path.join(directoryTest,identity, maskedFile))):
                         score = siamese.predict(path1=path.join(directoryTest,identity, unmaskedFile),
                                 path2=path.join(directoryTest,identity, maskedFile), visualize_result=True)
                         print("Identità: {}. Session: {}. Score: {}".format(identity, videoSession, score))
