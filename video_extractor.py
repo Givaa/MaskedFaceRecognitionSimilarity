@@ -1,4 +1,4 @@
-from genericpath import isdir
+from genericpath import isdir, isfile
 from os import listdir, mkdir, path
 import re
 import cv2
@@ -16,9 +16,10 @@ destinationDirectory = "m2fred_face"
 destinationComparisonDirectory = "dataset_test/m2fred_face"
 
 #Save images in this resolution
-required_size=(160, 160)
+required_size=(128, 128)
 
-THREADS = 30
+THREADS = 10
+IMAGES_FOR_VIDEO = 16
 
 folders = list(filter(lambda file: file.find("_0") >0, listdir(directory)))
 for i, f in enumerate(folders):
@@ -37,12 +38,28 @@ def frameExtractor(path, trainDestination, comparisonDestination, onlyFirstCaptu
 
     #Duration is divided into 11 parts. In this way there will be 11 images for each video
     #10 images will be used for the train, 1 for the comparison
-    duration = frame_count/fps * 1000 / 11
+    duration = frame_count/fps * 1000 / IMAGES_FOR_VIDEO
 
     i=0
     count=0
 
     while True:
+        #----------------------------------------
+        #Skip loop if image already exist. Useful to save resources and time in case of crash
+        if i == int(IMAGES_FOR_VIDEO/2) and onlyFirstCapture == False and isfile("{}-0.png".format(comparisonDestination)):
+            i+=1
+            count+=1
+            vidcap.set(cv2.CAP_PROP_POS_MSEC,(count*duration)) 
+            continue
+        elif isfile("{}-{}.png".format(trainDestination,i)):
+            if onlyFirstCapture == True:
+                break
+            i+=1
+            count+=1
+            vidcap.set(cv2.CAP_PROP_POS_MSEC,(count*duration)) 
+            continue
+        #----------------------------------------
+
         success,image = vidcap.read()
         if success == False:
             break
@@ -67,11 +84,13 @@ def frameExtractor(path, trainDestination, comparisonDestination, onlyFirstCaptu
             # resize pixels to the model size
             image = Image.fromarray(face)
             image = image.resize(required_size)
-            if i < 10:
-                image.save("{}-{}.png".format(trainDestination,i))
-            else:
+
+            if i == int(IMAGES_FOR_VIDEO/2) and onlyFirstCapture == False:
                 image.save("{}-0.png".format(comparisonDestination))
+            else:
+                image.save("{}-{}.png".format(trainDestination,i))
             i+=1
+
             if onlyFirstCapture == True:
                 break
         count+=1
