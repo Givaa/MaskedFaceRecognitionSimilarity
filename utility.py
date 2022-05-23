@@ -4,6 +4,7 @@ import random
 import tensorflow as tf
 from tensorflow import keras
 from pathlib import Path
+from keras import backend as K
 
 def make_pairs(x, y):
     """Creates a tuple containing image pairs with corresponding label.
@@ -95,6 +96,24 @@ def loss(margin=1):
         )
 
     return contrastive_loss
+
+
+def recall_m(y_true, y_pred):
+    true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+    possible_positives = K.sum(K.round(K.clip(y_true, 0, 1)))
+    recall = true_positives / (possible_positives + K.epsilon())
+    return recall
+def precision_m(y_true, y_pred):
+    true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+    predicted_positives = K.sum(K.round(K.clip(y_pred, 0, 1)))
+    precision = true_positives / (predicted_positives + K.epsilon())
+    return precision
+def f1_m(y_true, y_pred):
+    precision = precision_m(y_true, y_pred)
+    recall = recall_m(y_true, y_pred)
+    return 2*((precision*recall)/(precision+recall+K.epsilon()))
+def mean_squared_error(y_true, y_pred):
+    return K.mean(K.square(y_pred - y_true), axis=-1)
 
 def plt_metric(history, metric, title, has_valid=True):
     """Plots the given 'metric' from 'history'.

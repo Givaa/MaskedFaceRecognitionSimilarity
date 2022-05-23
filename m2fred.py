@@ -9,37 +9,53 @@ from tensorflow import keras
 
 from siamese_network import SiameseClass
 
+#Training dataset
 directory = "m2fred_face"
+
+#Dataset used for testing
 directoryTest = "dataset_test/m2fred_face"
+
+#keras model save path
 directoryModel = "model_save/{}/".format(directory)
 
-#truncate_dataset=None dà problemi allocazione memoria
+#Create a Siamese Network instance.
 siamese = SiameseClass(directory=directory, 
 model_save_path=directoryModel,
 epochs=10)
 
-#Commentato perchè già addestrato
-#siamese.train(save_model=True)
+#Train the model
+#siamese.train(save_weights=True)
 
-#labels
-classes = siamese.class_names
-#siamese.plot_accuracy()
-#siamese.plot_loss()
+#Plot accuracy, loss
+siamese.plot_accuracy()
+siamese.plot_loss()
+siamese.plot_f1()
+siamese.plot_mse()
+siamese.plot_precision()
+siamese.plot_recall()
 
-#result = siamese.predict(path1="celeb_dataset_masked_person/unmasked/202599.jpg",
-#                path2="celeb_dataset_masked_unmasked/mask1/202599.jpg", visualize_result=True, save_image_path="foto.png")
 
 identities = listdir(join(directoryTest))
-
+i=1
+#Loop on test identities.
 for identity in identities:
         identifyFolderTest = path.join(directoryTest,identity)
+
+        #Load images without mask
         unmaskedFiles = list(filter(lambda file: file.find("-0-0") >0, listdir(identifyFolderTest)))
 
         for unmaskedFile in unmaskedFiles:
                 videoSession = unmaskedFile.split("-")[0]
+
+                #Masked image file name.
                 maskedFile = "{}-1-0.png".format(videoSession)
+
                 if(isfile(path.join(directoryTest,identity, maskedFile))):
-                        score = siamese.predict(path1=path.join(directoryTest,identity, unmaskedFile),
-                                path2=path.join(directoryTest,identity, maskedFile), visualize_result=True)
-                        print("Identità: {}. Session: {}. Score: {}".format(identity, videoSession, score))
+                        #Compare image of the same session. Unm
+                        unmaskedPath = path.join(directoryTest,identity, unmaskedFile)
+                        maskedPath = path.join(directoryTest,identity, maskedFile)
+                        score = siamese.predict(path1=unmaskedPath,
+                                path2=maskedPath, visualize_result=False, save_image_path="result/m2fred/{}.png".format(i))
+                        i+=1
+                        print("Identity: {}. Session: {}. Score: {}".format(identity, videoSession, score))
 print("FATTO")

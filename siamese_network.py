@@ -8,11 +8,21 @@ import random
 import tensorflow as tf
 from tensorflow import keras
 
-from utility import euclidean_distance, get_class_from_file, load_img, loss, make_pairs, plt_metric, visualize
+from utility import euclidean_distance, f1_m, get_class_from_file, load_img, loss, make_pairs, mean_squared_error, plt_metric, precision_m, recall_m, visualize
 
 class SiameseClass:
-
     def __init__(self, directory = "/dataset", model_save_path=None, epochs=10, target_shape = (128, 128), margin=1, truncate_dataset=None):
+        """
+        Init a Siamese network
+
+        :param directory: training dataset directory path
+        :param model_save_path: directory where keras saves the layer weights
+        :param epochs: an arbitrary cutoff, generally defined as "one pass over the entire dataset", used to separate training into distinct phases, which is useful for logging and periodic evaluation.
+        :param target_shape: image dimension
+        :param margin: Integer, defines the baseline for distance for which pairs should be classified as dissimilar. - (default is 1).
+        :param truncate_dataset: Integer. Loads only the first truncate_dataset entries. Useful to reduce the memory usage.
+        :return: SiameseClass
+        """ 
         self.directory = directory
         self.model_save_path = model_save_path
         self.epochs = epochs
@@ -40,7 +50,13 @@ class SiameseClass:
             print("No model found. Model needs to be trained.")
             
 
-    def train(self, save_model = False):
+    def train(self, save_weights = False):
+        """
+        Train Siamese network
+
+        :param save_weights: boolean. Saves the model weights in model_save_path
+        :return: None
+        """ 
         train_ds = keras.utils.image_dataset_from_directory(
             self.directory,
             batch_size=self.batch_size,
@@ -48,10 +64,6 @@ class SiameseClass:
             image_size=self.target_shape,
             labels='inferred', label_mode='int',
         )
-        normalization_layer = tf.keras.layers.Rescaling(1./255)
-        normalized_ds = train_ds.map(lambda x, y: (normalization_layer(x), y))
-        image_batch, labels_batch = next(iter(normalized_ds))
-        first_image = image_batch[0]
 
         x_train_val =[]
         y_train_val =[]
@@ -102,7 +114,7 @@ class SiameseClass:
         )
 
         
-        if save_model == True:
+        if save_weights == True:
             siamese.save_weights(self.model_save_path)
             with open(self.model_save_path+"history", 'wb') as file_pi:
                 pickle.dump(history.history, file_pi)
@@ -110,9 +122,6 @@ class SiameseClass:
 
         self.history = history
         self.siamese = siamese
-
-        #predictions = siamese.predict([x_test_1, x_test_2])
-        #visualize(pairs_test, labels_test, to_show=3, predictions=predictions, test=True)
 
     def siamese_boilerplate(self):
         input = tf.keras.layers.Input((128, 128, 3))
@@ -142,17 +151,56 @@ class SiameseClass:
         output_layer = tf.keras.layers.Dense(1, activation="sigmoid")(normal_layer)
         siamese = keras.Model(inputs=[input_1, input_2], outputs=output_layer)
 
-        siamese.compile(loss=loss(margin=self.margin), optimizer="RMSprop", metrics=["accuracy"])
+        siamese.compile(loss=loss(margin=self.margin), optimizer="RMSprop", metrics=["accuracy", f1_m,precision_m, recall_m, mean_squared_error])
         siamese.summary()
         return siamese
 
     def plot_accuracy(self):
-        plt_metric(history=self.history, metric="accuracy", title="Model accuracy")
+        """
+        Plot accuracy
+        """ 
+        plt_metric(history=self.history, metric="accuracy", title="Accuracy")
 
     def plot_loss(self):
+        """
+        Plot Constrastive loss metrics
+        """ 
         plt_metric(history=self.history, metric="loss", title="Constrastive Loss")
 
+    def plot_f1(self):
+        """
+        Plot F1 score
+        """ 
+        plt_metric(history=self.history, metric="f1_m", title="F1 score")
+
+    def plot_precision(self):
+        """
+        Plot precision score
+        """ 
+        plt_metric(history=self.history, metric="precision_m", title="Precision")
+
+    def plot_recall(self):
+        """
+        Plot recall metric
+        """ 
+        plt_metric(history=self.history, metric="recall_m", title="Recall")
+
+    def plot_mse(self):
+        """
+        Plot Mean Squared Error
+        """ 
+        plt_metric(history=self.history, metric="mean_squared_error", title="MSE")
+
     def predict(self, path1="", path2="", visualize_result=False, save_image_path=None):
+        """
+        Predict the difference between two images
+
+        :param path1: First image path
+        :param path2: Second image path
+        :param visualize_result: boolean. Plot the result with the two images
+        :param save_image_path: save the plot result as image
+        :return: SiameseClass
+        """ 
         file1 = load_img(path1, (128, 128))
         class1 = get_class_from_file(path1)
 
@@ -160,11 +208,6 @@ class SiameseClass:
         class2 = get_class_from_file(path2)
 
         results = self.siamese.predict([file1,file2])
-
-
-        #fig, ax = plt.subplots()
-        #ax.set_title('Pred: ')#{:.5f}', results[0][0])
-        #ax.imshow(tf.concat([file1[0], file2[0]], axis=1), cmap="gray")
 
         if visualize_result == True:
             fig = plt.figure()
